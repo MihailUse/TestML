@@ -11,7 +11,7 @@ namespace TestML
 			Console.WriteLine("\n\n");
 
             var cnn = new ClassificationCNN();
-            cnn.PrepareData();
+            cnn.Run();
         }
     }
 }
