@@ -23,12 +23,12 @@ namespace TestML
 		const int img_height = 150;
 		const int img_width = 150;
 		Shape img_dim = (img_height, img_width);
-		
+
 		//Model
 		Model model;
-		int epochs = 10;
-		int batch_size = 64;
-		float learning_rate = 0.0002f;
+		int epochs = 20;
+		int batch_size = 16;
+		float learning_rate = 0.001f;
 
 		public void Run()
 		{
@@ -55,13 +55,20 @@ namespace TestML
 				layers.Conv2D(64, 3, padding: "same", activation: "relu"),
 				layers.MaxPooling2D(),
 
+				layers.Conv2D(128, 3, padding: "same", activation: "relu"),
+				layers.MaxPooling2D(),
+
+				layers.Conv2D(256, 3, padding: "same", activation: "relu"),
+				layers.MaxPooling2D(),
+
 				layers.Flatten(),
-				layers.Dense(128, activation: "relu"),
+				layers.Dense(512, activation: "relu"),
+				layers.Dense(512, activation: "relu"),
 				layers.Dense(1)
 			});
 
 			model.compile(optimizer: keras.optimizers.Adam(learning_rate),
-				loss: keras.losses.CategoricalCrossentropy(from_logits: true),
+				loss: keras.losses.SparseCategoricalCrossentropy(from_logits: true),
 				metrics: new[] { "accuracy" });
 
 			model.summary();
@@ -69,7 +76,7 @@ namespace TestML
 
 		public void Train()
 		{
-			model.fit(train_ds, epochs: epochs);
+			model.fit(train_ds, validation_data: val_ds, epochs: epochs);
 		}
 
 		public void PrepareData()
@@ -97,11 +104,12 @@ namespace TestML
 				batch_size: batch_size
 			);
 
-			train_ds = train_ds.shuffle(1000).prefetch(buffer_size: -1);
-			val_ds = val_ds.prefetch(buffer_size: -1);
+			print($"Total num train batches: {train_ds.Count()}");
+			print($"Total num validation batches: {val_ds.Count()}");
 
-			//train_ds.map(x => tf.cast(x, tf.float32));
-			//val_ds.map(x => tf.cast(x, tf.float32));
+			train_ds = train_ds.shuffle(3000).prefetch(1);
+			val_ds = val_ds.prefetch(1);
+
 
 			foreach (var (img, label) in train_ds)
 			{
